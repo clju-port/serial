@@ -6,6 +6,9 @@ cjlu_usart::cjlu_usart(QWidget *parent) :
     ui(new Ui::cjlu_usart)
 {
     ui->setupUi(this);
+    QTimer *Timer = new QTimer(this);
+    connect(Timer,SIGNAL(timeout()),this,SLOT(Time_Show()));
+    Timer->start(500);
     // USER
     system_init();
 }
@@ -31,7 +34,6 @@ void cjlu_usart::system_init()
     connect(ui->Button_Close,&QPushButton::clicked,this,&cjlu_usart::Button_Close_Port);
     connect(ui->Button_Send,&QPushButton::clicked,this,&cjlu_usart::Button_Send_Port);
     connect(&global_port,&QSerialPort::readyRead,this,&Receive_Data);
-
 }
 
 /* -----------------------------------------
@@ -103,6 +105,32 @@ void cjlu_usart::Button_Open_Port(bool)
         global_port.setBaudRate(QSerialPort::Baud115200);
         break;
     }
+    /*--------------port check---------------*/
+    // 获取串口奇偶校验位
+    switch (ui->COM_Check_Bit->currentIndex()) {
+    case 0:
+        global_port.setParity(QSerialPort::NoParity);
+        break;
+    case 1:
+        global_port.setParity(QSerialPort::EvenParity);
+        break;
+    default:
+        global_port.setParity(QSerialPort::OddParity);
+        break;
+    }
+    /*-------------port stop-----------------*/
+    // 获取串口停止位
+    switch (ui->COM_Stop_Bit->currentIndex()) {
+    case 0:
+        global_port.setStopBits(QSerialPort::OneStop);
+        break;
+    case 1:
+        global_port.setStopBits(QSerialPort::OneAndHalfStop);
+        break;
+    default:
+        global_port.setStopBits(QSerialPort::TwoStop);
+        break;
+    }
     /*--------------open port----------------*/
     global_port.open(QIODevice::ReadWrite);
 
@@ -141,3 +169,11 @@ void cjlu_usart::Receive_Data()
 
 }
 
+/*---------------timer set---------------*/
+void cjlu_usart::Time_Show()
+{
+    QTime time = QTime::currentTime();
+    QString txtTime = time.toString("hh:mm:ss");
+
+    ui->Time->display(txtTime);
+}
